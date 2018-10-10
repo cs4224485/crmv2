@@ -1,0 +1,86 @@
+{% extends 'stark/layout.html' %}
+{% load my_tags %}
+
+{% block css %}
+    <style>
+        .comb-search {
+            padding: 5px 20px;
+        }
+
+        .comb-search .row .whole {
+            width: 60px;
+            float: left;
+
+        }
+
+        .comb-search .row .others {
+            padding-left: 60px;
+        }
+
+        .comb-search .row a {
+            display: inline-block;
+            padding: 5px 8px;
+            margin: 3px;
+            border: 1px solid #d4d4d4;
+
+        }
+
+        .comb-search .row a {
+            display: inline-block;
+            padding: 5px 8px;
+            margin: 3px;
+            border: 1px solid #d4d4d4;
+        }
+
+        .comb-search a.active {
+            color: #fff;
+            background-color: #337ab7;
+            border-color: #2e6da4;
+        }
+    </style>
+{% endblock %}
+
+
+
+{% block content %}
+    <div>
+        <div class="comb-search">
+            {% for row in cl.gen_list_filter_row %}
+                <div class="row">
+                    {% for obj in row %}
+                        {{ obj|safe }}
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        {% if cl.add_btn %}
+            <div style="margin: 5px 0;">
+                {{ cl.add_btn }}
+            </div>
+        {% endif %}
+
+        <form method="get" class="" action="">
+            <input type="text" class="" name="q" value="{{ cl.keyword }}">
+            <input type="submit" value="search" class="btn btn-success">
+        </form>
+        <form method="post">
+            {% csrf_token %}
+            <select name="actions" class="form-control" style="width: 200px; display: inline-block; vertical-align: -1px; margin: 8px 2px">
+                {% for action in cl.action_list %}
+                    <option value="{{ action.name }}">{{ action.text }}</option>
+                {% endfor %}
+            </select>
+            <button type="submit" class="btn-success btn">GO</button>
+
+            {% table cl %}
+        </form>
+        <nav class="pull-right">
+            <ul class="pagination">
+                {{ cl.page|safe }}
+            </ul>
+        </nav>
+    </div>
+
+
+
+{% endblock %}
