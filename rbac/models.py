@@ -2,14 +2,11 @@ from django.db import models
 
 
 class Menu(models.Model):
-    """
-    菜单
-    """
-    title = models.CharField(verbose_name='菜单', max_length=32)
-    icon = models.CharField(verbose_name='图标', max_length=32)
-
-    def __str__(self):
-        return self.title
+    '''
+    一级菜单
+    '''
+    title = models.CharField(verbose_name='一级菜单名称', max_length=32)
+    icon = models.CharField(verbose_name='图标', max_length=32, null=True, blank=True)
 
 
 class Permission(models.Model):
@@ -17,16 +14,13 @@ class Permission(models.Model):
     权限表
     """
     title = models.CharField(verbose_name='标题', max_length=32)
-    url = models.CharField(verbose_name='含正则的URL', max_length=128, unique=True)
-
-    name = models.CharField(verbose_name='代码', max_length=64, unique=True, null=False, blank=False)
-
-    pid = models.ForeignKey(verbose_name='默认选中权限', to='Permission', related_name='ps', null=True, blank=True,
-                            help_text="对于无法作为菜单的URL，可以为其选择一个可以作为菜单的权限，那么访问时，则默认选中此权限",
-                            limit_choices_to={'menu__isnull': False}, on_delete=models.SET_NULL)
-
-    menu = models.ForeignKey(verbose_name='菜单', to='Menu', null=True, blank=True, help_text='null表示非菜单',
-                             on_delete=models.SET_NULL)
+    url = models.CharField(verbose_name='含正则的URL', max_length=128)
+    icon = models.CharField(verbose_name='图标', max_length=32, null=True, blank=True)
+    menu = models.ForeignKey(verbose_name='所属一级菜单', to='Menu', null=True, blank=True, help_text='null表示不是菜单',
+                             on_delete=models.CASCADE)
+    name = models.CharField(verbose_name='URL别名', max_length=32, unique=True)
+    pid = models.ForeignKey(verbose_name='关联权限', to='Permission', help_text='对于非菜单权限需要选择一个可以成为菜单的权限,用户做默认展开和选中菜单',
+                            null=True, blank=True, related_name='parents', on_delete=models.CASCADE)
 
     def __str__(self):
         return self.title
@@ -47,13 +41,15 @@ class UserInfo(models.Model):
     """
     用户表
     """
-    username = models.CharField(verbose_name='用户名', max_length=32,null=True,blank=True)
-    password = models.CharField(verbose_name='密码', max_length=64,null=True,blank=True)
-    email = models.CharField(verbose_name='邮箱', max_length=32,null=True,blank=True)
+    name = models.CharField(verbose_name='用户名', max_length=32)
+    password = models.CharField(verbose_name='密码', max_length=64)
+    email = models.CharField(verbose_name='邮箱', max_length=32)
     roles = models.ManyToManyField(verbose_name='拥有的所有角色', to=Role, blank=True)
+
+    def __str__(self):
+        return self.name
 
     class Meta:
         abstract = True
-
 
 

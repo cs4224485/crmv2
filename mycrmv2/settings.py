@@ -39,7 +39,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'stark.apps.StarkConfig',
     'crm',
-    'rbac'
+    'rbac.apps.RbacConfig'
 ]
 
 MIDDLEWARE = [
@@ -125,3 +125,27 @@ STATIC_URL = '/static/'
 
 ########### crm业务相关 ############
 PRIVATE_CUSTOMER = 150
+
+
+# ######################### 权限相关配置 ############################
+
+PERMISSION_SESSION_KEY = "luffy_permission_url_list_key"
+MENU_SESSION_KEY = "luffy_permission_menu_key"
+VALID_URL_LIST = [
+    '/login/',
+    '/admin/.*'
+]
+
+AUTO_DISCOVER_EXCLUDE = [
+    '/admin/.*',
+    '/login/',
+    '/logout/',
+    '/index/',
+    '/api/.*'
+]
+
+# 需要登录但无需权限的URL
+NO_PERMISSION_LIST = [
+    '/index/',
+    '/logout/',
+]

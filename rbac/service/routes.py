@@ -1,14 +1,52 @@
 #!/usr/bin/env python
 # -*- coding:utf-8 -*-
+
+import re
+from collections import OrderedDict
 from django.conf import settings
 from django.utils.module_loading import import_string
-from django.urls.resolvers import RegexURLResolver, RegexURLPattern, URLResolver, ResolverMatch
-from collections import OrderedDict
+# for django 1.0
+# from django.urls import RegexURLResolver, RegexURLPattern
+# for django 2.0
+from django.urls.resolvers import URLResolver, URLPattern
+
+
+def check_url_exclude(url):
+    """
+    排除一些特定的URL
+    :param url:
+    :return:
+    """
+    for regex in settings.AUTO_DISCOVER_EXCLUDE:
+        if re.match(regex, url):
+            return True
 
 
 def recursion_urls(pre_namespace, pre_url, urlpatterns, url_ordered_dict):
+    """
+    递归的去获取URL
+    :param pre_namespace: namespace前缀，以后用户拼接name
+    :param pre_url: url前缀，以后用于拼接url
+    :param urlpatterns: 路由关系列表
+    :param url_ordered_dict: 用于保存递归中获取的所有路由
+    :return:
+    """
     for item in urlpatterns:
-        if isinstance(item, RegexURLResolver):
+        if isinstance(item, URLPattern):  # 非路由分发，讲路由添加到url_ordered_dict
+            if not item.name:
+                continue
+            if pre_namespace:
+                name = "%s:%s" % (pre_namespace, item.name,)
+            else:
+                name = item.name
+            if not item.name:
+                raise Exception('URL路由中必须设置name属性')
+            url = pre_url + str(item.pattern)
+            if check_url_exclude(url):
+                continue
+            url_ordered_dict[name] = {'name': name, 'url': url.replace('^', '').replace('$', '')}
+
+        elif isinstance(item, URLResolver):  # 路由分发，递归操作
             if pre_namespace:
                 if item.namespace:
                     namespace = "%s:%s" % (pre_namespace, item.namespace,)
@@ -19,35 +57,17 @@ def recursion_urls(pre_namespace, pre_url, urlpatterns, url_ordered_dict):
                     namespace = item.namespace
                 else:
                     namespace = None
-            recursion_urls(namespace, pre_url + item.regex.pattern, item.url_patterns, url_ordered_dict)
-        else:
-
-            if pre_namespace:
-                name = "%s:%s" % (pre_namespace, item.name,)
-            else:
-                name = item.name
-            if not item.name:
-                raise Exception('URL路由中必须设置name属性')
-
-            url = pre_url + item._regex
-            url_ordered_dict[name] = {'name': name, 'url': url.replace('^', '').replace('$', '')}
+            recursion_urls(namespace, pre_url + str(item.pattern), item.url_patterns, url_ordered_dict)
 
 
-def get_all_url_dict(ignore_namespace_list=None):
+def get_all_url_dict():
     """
-    获取路由中
+    获取项目中所有的URL（必须有name别名）
     :return:
     """
-    ignore_list = ignore_namespace_list or []
     url_ordered_dict = OrderedDict()
 
-    md = import_string(settings.ROOT_URLCONF)
-    urlpatterns = []
+    md = import_string(settings.ROOT_URLCONF)  # from luff.. import urls
+    recursion_urls(None, '/', md.urlpatterns, url_ordered_dict)  # 递归去获取所有的路由
 
-    for item in md.urlpatterns:
-        if item.namespace in ignore_list:
-            continue
-        urlpatterns.append(item)
-
-    recursion_urls(None, "/", urlpatterns, url_ordered_dict)
     return url_ordered_dict

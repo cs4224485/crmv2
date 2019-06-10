@@ -1,24 +1,9 @@
 {% extends 'layout.html' %}
-
+{% load rbac_tag %}
 {% block css %}
     <style>
-
-        .menu-area tr.active {
-            background-color: #f1f7fd;
+        tr.active {
             border-left: 3px solid #fdc00f;
-        }
-
-        #menuBody td[mid], #permissionBody > .root .title {
-            cursor: pointer;
-        }
-
-        #permissionBody tr.root {
-            background-color: #f1f7fd;
-        }
-
-        td a {
-            margin: 0 2px;
-            cursor: pointer;
         }
 
         table {
@@ -28,26 +13,30 @@
         .panel-body {
             font-size: 12px;
         }
-
-        .panel-body .form-control {
-            font-size: 12px;
-        }
     </style>
+
 {% endblock %}
+
+
 
 {% block content %}
     <div class="luffy-container">
-        <div class="col-md-3 menu-area">
+
+        <div class="col-md-3">
+
             <div class="panel panel-default">
                 <!-- Default panel contents -->
                 <div class="panel-heading">
-                    <i class="fa fa-book" aria-hidden="true"></i> 菜单管理
-                    <a href="{% url 'rbac:menu_add' %}" class="right btn btn-success btn-xs"
+                    <i class="fa fa-book" aria-hidden="true"></i> 一级菜单
+                    <a href="{% memory_url request 'rbac:menu_add' %}" class="right btn btn-success btn-xs"
                        style="padding: 2px 8px;margin: -3px;">
                         <i class="fa fa-plus-circle" aria-hidden="true"></i>
                         新建
                     </a>
+
+
                 </div>
+
                 <!-- Table -->
                 <table class="table">
                     <thead>
@@ -57,150 +46,151 @@
                         <th>选项</th>
                     </tr>
                     </thead>
-                    <tbody id="menuBody">
-                    {% for item in menu_list %}
-                        {% if item.id|safe == mid %}
-                            <tr class="active">
-                                {% else %}
-                            <tr>
-                        {% endif %}
-                    <td><a href="?mid={{ item.id }}"
-                           style="display: block">{{ item.title }}（{{ item.permission_set.count }}）</a></td>
-                    <td><i class="fa {{ item.icon }}" aria-hidden="true"></i></td>
-                    <td>
-                        <a href="{% url 'rbac:menu_edit' pk=item.id %}" style="color: #333333;">
-                            <i class="fa fa-edit" aria-hidden="true"></i></a>
-                        <a href="{% url 'rbac:menu_del' pk=item.id %}" style="color: #d9534f;">
-                            <i class="fa fa-trash-o" aria-hidden="true"></i>
-                        </a>
-                    </td>
-                    </tr>
+                    <tbody>
+                    {% for row in menus %}
+                        <tr class="{% if row.id|safe == menu_id %}active{% endif %}">
+                            <td>
+                                <a href="?mid={{ row.id }}">{{ row.title }}</a>
+                            </td>
+                            <td>
+                                <i class="fa {{ row.icon }}" aria-hidden="true"></i>
+                            </td>
+                            <td>
+                                <a style="color: #333333;" href="{% memory_url request 'rbac:menu_edit' pk=row.id %}">
+                                    <i class="fa fa-edit" aria-hidden="true"></i></a>
+
+
+                                <a style="color: #d9534f;" href="{% memory_url request 'rbac:menu_del' pk=row.id %}"><i
+                                        class="fa fa-trash-o"></i></a>
+
+                            </td>
+                        </tr>
                     {% endfor %}
 
                     </tbody>
                 </table>
             </div>
+
         </div>
-        <div class="col-md-9">
+
+        <div class="col-md-4">
+
             <div class="panel panel-default">
+                <!-- Default panel contents -->
                 <div class="panel-heading">
-                    <i class="fa fa-cubes" aria-hidden="true"></i>权限管理
-                    <div class="btn-group right">
-                        <a href="{% url 'rbac:permission_add' %}" class="btn btn-xs btn-success"
+                    <i class="fa fa-gavel" aria-hidden="true"></i> 二级菜单
+                    {% if menu_id %}
+                        <a href="{% memory_url request 'rbac:second_menu_add' menu_id=menu_id %}"
+                           class="right btn btn-success btn-xs"
                            style="padding: 2px 8px;margin: -3px;">
                             <i class="fa fa-plus-circle" aria-hidden="true"></i>
                             新建
                         </a>
-                        <a href="{% url 'rbac:multi_permissions' %}" class="btn btn-xs btn-primary"
-                           style="padding: 2px 8px;margin: -3px;">
-                            <i class="fa fa-mail-forward" aria-hidden="true"></i>
-                            批量操作
-                        </a>
-                    </div>
+                    {% endif %}
+
+
                 </div>
+
+                <!-- Table -->
                 <table class="table">
                     <thead>
                     <tr>
                         <th>名称</th>
-                        <th>URL</th>
-                        <th>CODE</th>
-                        <th>菜单</th>
-                        <th>所属菜单</th>
+                        <th>CODE&URL</th>
                         <th>选项</th>
                     </tr>
                     </thead>
-                    <tbody id="permissionBody">
-                    {% for root in root_permission_list %}
-                        <tr class="root" id="{{ root.id }}">
-                            <td class="title">
-                                <i class="fa fa-caret-down" aria-hidden="true"></i>
-                                {{ root.title }}</td>
-                            <td>{{ root.url }}</td>
-                            <td>{{ root.name }}</td>
-                            {% if root.menu__title %}
-                                <td>是</td>
-                            {% else %}
-                                <td></td>
-                            {% endif %}
-                            <td>
-                                {% if root.menu__title %}
-                                    {{ root.menu__title }}
-                                {% endif %}
+                    <tbody>
+                    {% for row in second_menus %}
+                        <tr class="{% if row.id|safe == second_menu_id %}active {% endif %}">
+                            <td rowspan="2">
+                                <a href="?mid={{ menu_id }}&sid={{ row.id }}">{{ row.title }}</a>
                             </td>
+                            <td>{{ row.name }}</td>
                             <td>
-                                <a href="{% url 'rbac:permission_edit' pk=root.id %}" style="color:#333333;">
+                                <a style="color: #333333;"
+                                   href="{% memory_url request 'rbac:second_menu_edit' pk=row.id %}">
                                     <i class="fa fa-edit" aria-hidden="true"></i></a>
-                                <a href="{% url 'rbac:permission_del' pk=root.id %}" style="color:#d9534f;">
-                                    <i class="fa fa-trash-o" aria-hidden="true"></i>
-                                </a>
+
+
+                                <a style="color: #d9534f;"
+                                   href="{% memory_url request 'rbac:second_menu_del' pk=row.id %}"><i
+                                        class="fa fa-trash-o"></i></a>
+
                             </td>
                         </tr>
-                        {% for child in root.children %}
-                            <tr class="node" pid="{{ root.id }}">
-                                <td class="title">{{ child.title }}</td>
-                                <td>{{ child.url }}</td>
-                                <td>{{ child.name }}</td>
-                                <td></td>
-                                <td>{{ child.menu__title }}</td>
-                                <td>
-                                    <a href="{% url 'rbac:permission_edit' pk=root.id %}" style="color:#333333;">
-                                        <i class="fa fa-edit" aria-hidden="true"></i></a>
-                                    <a href="{% url 'rbac:permission_del' pk=root.id %}" style="color:#d9534f;">
-                                        <i class="fa fa-trash-o" aria-hidden="true"></i>
-                                    </a>
-                                </td>
-                            </tr>
-
-                        {% endfor %}
+                        <tr class="{% if row.id|safe == second_menu_id %}active {% endif %}">
+                            <td colspan="2" style="border-top: 0">{{ row.url }}</td>
+                        </tr>
                     {% endfor %}
+
                     </tbody>
                 </table>
             </div>
+
+        </div>
+
+        <div class="col-md-5">
+
+            <div class="panel panel-default">
+                <!-- Default panel contents -->
+                <div class="panel-heading">
+                    <i class="fa fa-gavel" aria-hidden="true"></i> 权限
+
+                    <div class="btn-group right">
+                        {% if second_menu_id %}
+                            <a href="{% memory_url request 'rbac:permission_add' second_menu_id=second_menu_id %}"
+                               class="right btn btn-success btn-xs"
+                               style="padding: 2px 8px;margin: -3px;">
+                                <i class="fa fa-plus-circle" aria-hidden="true"></i>
+                                新建
+                            </a>
+                        {% endif %}
+                        <a href="{% memory_url request 'rbac:multi_permissions' %}" class="btn btn-xs btn-primary"
+                           style="padding: 2px 8px;margin: -3px 0;">
+                            <i class="fa fa-mail-forward" aria-hidden="true"></i>
+                            批量操作
+                        </a>
+                    </div>
+
+                </div>
+
+                <!-- Table -->
+                <table class="table">
+                    <thead>
+                    <tr>
+                        <th>名称</th>
+                        <th>CODE&URL</th>
+                        <th>选项</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for row in permissions %}
+                        <tr>
+                            <td rowspan="2">{{ row.title }}</td>
+                            <td>{{ row.name }}</td>
+                            <td>
+                                <a style="color: #333333;"
+                                   href="{% memory_url request 'rbac:permission_edit' pk=row.id %}">
+                                    <i class="fa fa-edit" aria-hidden="true"></i></a>
+
+
+                                <a style="color: #d9534f;"
+                                   href="{% memory_url request 'rbac:permission_del' pk=row.id %}"><i
+                                        class="fa fa-trash-o"></i></a>
+
+                            </td>
+                        </tr>
+                        <tr>
+                            <td colspan="2" style="border-top: 0">{{ row.url }}</td>
+                        </tr>
+                    {% endfor %}
+
+                    </tbody>
+                </table>
+            </div>
+
         </div>
     </div>
 
-    <div id="menuDelete" class="modal fade" tabindex="-1" role="dialog">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span
-                            aria-hidden="true">&times;</span></button>
-                    <h4 class="modal-title">Modal title</h4>
-                </div>
-                <div class="modal-body">
-                    <p>One fine body&hellip;</p>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
-                </div>
-            </div><!-- /.modal-content -->
-        </div><!-- /.modal-dialog -->
-    </div><!-- /.modal -->
-
-{% endblock %}
-
-{% block js %}
-    <script>
-        $(function () {
-            bindRootPermissionClick();
-        });
-
-        function bindRootPermissionClick() {
-            $('#permissionBody').on('click', '.root .title', function () {
-                var caret = $(this).find('i');
-                var id = $(this).parent().attr('id');
-                if (caret.hasClass('fa-caret-right')) {
-                    caret.removeClass('fa-caret-right').addClass('fa-caret-down');
-                    $(this).parent().nextAll('tr[pid="' + id + '"]').removeClass('hide');
-                } else {
-                    caret.removeClass('fa-caret-down').addClass('fa-caret-right');
-                    $(this).parent().nextAll('tr[pid="' + id + '"]').addClass('hide');
-
-                }
-            })
-        }
-
-
-    </script>
 {% endblock %}

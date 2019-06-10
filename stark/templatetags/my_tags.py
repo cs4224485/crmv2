@@ -59,7 +59,6 @@ def body_list(cl):
                             _url = cl.config.reverse_edit_url(query_obj)
                             value = mark_safe("<a href='%s'>%s</a>" % (_url, value))
                   except Exception:
-                      print('error')
                       value = getattr(query_obj, field)
             row.append(value)
         body_list.append(row)
@@ -69,3 +68,8 @@ def body_list(cl):
 @register.inclusion_tag('stark/table_body.html')
 def table(cl):
     return {'header_list': header_list(cl), 'body_list': body_list(cl)}
+
+
+@register.inclusion_tag('consult_record_body.html')
+def get_body(cl):
+    return {'body_list': body_list(cl)}

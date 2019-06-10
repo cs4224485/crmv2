@@ -55,7 +55,7 @@
         </div>
         {% if cl.add_btn %}
             <div style="margin: 5px 0;">
-                {{ cl.add_btn }}
+                {{ cl.add_btn|safe }}
             </div>
         {% endif %}
 
@@ -65,13 +65,14 @@
         </form>
         <form method="post">
             {% csrf_token %}
+            {% if cl.action_list %}
             <select name="actions" class="form-control" style="width: 200px; display: inline-block; vertical-align: -1px; margin: 8px 2px">
                 {% for action in cl.action_list %}
                     <option value="{{ action.name }}">{{ action.text }}</option>
                 {% endfor %}
             </select>
             <button type="submit" class="btn-success btn">GO</button>
-
+            {% endif %}
             {% table cl %}
         </form>
         <nav class="pull-right">

@@ -1,14 +1,14 @@
-.static-menu {
+.left-menu .menu-body .static-menu {
 
 }
 
-.static-menu .icon-wrap {
+.left-menu .menu-body .static-menu .icon-wrap {
     width: 20px;
     display: inline-block;
     text-align: center;
 }
 
-.static-menu a {
+.left-menu .menu-body .static-menu a {
     text-decoration: none;
     padding: 8px 15px;
     border-bottom: 1px solid #ccc;
@@ -24,21 +24,22 @@
     box-shadow: inset 0px 1px 1px white;
 }
 
-.static-menu a:hover {
+.left-menu .menu-body .static-menu a:hover {
     color: #2F72AB;
     border-left: 2px solid #2F72AB;
 }
 
-.static-menu a.active {
+.left-menu .menu-body .static-menu a.active {
     color: #2F72AB;
     border-left: 2px solid #2F72AB;
 }
+
 .multi-menu .item {
     background-color: white;
 }
 
 .multi-menu .item > .title {
-    padding: 8px 5px;
+    padding: 10px 5px;
     border-bottom: 1px solid #dddddd;
     cursor: pointer;
     color: #333;
